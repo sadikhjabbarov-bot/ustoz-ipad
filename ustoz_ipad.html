@@ -285,10 +285,10 @@ async function sendInside(){
 
   // Send to ntfy.sh
   try{
-    const resp=await fetch(NTFY+channel,{
+    const titleParam='?title='+encodeURIComponent('Inside: '+CATS[cat].label)+'&tags=white_check_mark';
+    const resp=await fetch(NTFY+channel+titleParam,{
       method:'POST',
-      body:JSON.stringify(payload),
-      headers:{'Content-Type':'application/json','X-Title':'Inside: '+CATS[cat].label,'X-Tags':'white_check_mark'}
+      body:JSON.stringify(payload)
     });
     if(resp.ok){
       updateSentStatus(itemId,'✅ Monoblock da qabul qilindi','ok');
