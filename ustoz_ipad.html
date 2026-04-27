@@ -283,24 +283,29 @@ async function sendInside(){
   // Clear input
   area.value='';updateSendBtn();
 
-  // Send to ntfy.sh
+  // Send to ntfy.sh via sendBeacon (CORS yo'q)
   try{
     const titleParam='?title='+encodeURIComponent('Inside: '+CATS[cat].label)+'&tags=white_check_mark';
-    const resp=await fetch(NTFY+channel+titleParam,{
-      method:'POST',
-      body:JSON.stringify(payload)
-    });
-    if(resp.ok){
-      updateSentStatus(itemId,'✅ Monoblock da qabul qilindi','ok');
+    const blob=new Blob([JSON.stringify(payload)],{type:'text/plain'});
+    const ok=navigator.sendBeacon(NTFY+channel+titleParam, blob);
+    if(ok){
+      updateSentStatus(itemId,'✅ Yuborildi','ok');
       toast('✅ Yuborildi!');
       setConn(true);
     } else {
-      updateSentStatus(itemId,'⚠️ Yuborishda xato ('+resp.status+')','err');
-      toast('Xato: '+resp.status);
+      // sendBeacon muvaffaqiyatsiz — fetch bilan qayta urinish
+      const resp=await fetch(NTFY+channel+titleParam,{method:'POST',body:JSON.stringify(payload)});
+      if(resp.ok){
+        updateSentStatus(itemId,'✅ Yuborildi','ok');
+        toast('✅ Yuborildi!');setConn(true);
+      } else {
+        updateSentStatus(itemId,'⚠️ Xato: '+resp.status,'err');
+        toast('Xato: '+resp.status);
+      }
     }
   } catch(err){
-    updateSentStatus(itemId,'❌ Internet yo\'q yoki xato','err');
-    toast('Internet ulanishini tekshiring');
+    updateSentStatus(itemId,'❌ Xato: '+err.message,'err');
+    toast('Xato: '+err.message);
     setConn(false);
   }
 }
