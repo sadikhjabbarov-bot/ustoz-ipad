@@ -100,6 +100,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--dark);color:va
 
 <div class="topbar">
   <div class="logo">🎙️ USTOZ iPad</div>
+  <select id="langSel" style="background:#1A1A26;border:1px solid rgba(245,166,35,0.3);border-radius:8px;color:#E8E8F2;font-size:0.72rem;padding:0.25rem 0.5rem;cursor:pointer;outline:none;" onchange="changeLang()">
+    <option value="ru-RU">🇷🇺 Ruscha</option>
+    <option value="en-US">🇺🇸 English</option>
+    <option value="uz-UZ">🇺🇿 O'zbek</option>
+  </select>
   <div class="conn-status">
     <div class="conn-dot" id="connDot"></div>
     <span id="connTxt">Ulanmagan</span>
@@ -229,7 +234,7 @@ function initSpeech(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){toast('Safari da ishlaydi — Chrome emas');return false;}
   recog=new SR();recog.continuous=true;recog.interimResults=true;recog.maxAlternatives=1;
-  recog.lang='uz-UZ';
+  recog.lang=document.getElementById('langSel').value||'ru-RU';
   recog.onresult=(e)=>{
     let interim='';
     for(let i=e.resultIndex;i<e.results.length;i++){
@@ -251,6 +256,7 @@ function initSpeech(){
   return true;
 }
 
+function changeLang(){if(recog){recog.stop();recog=null;listening=false;stopMic();}}
 function toggleMic(){if(!recog&&!initSpeech())return;if(listening)stopMic();else startMic();}
 function startMic(){
   listening=true;try{recog.start();}catch(e){}
