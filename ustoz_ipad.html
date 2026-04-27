@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>USTOZ — iPad</title>
+<style>
+:root{--gold:#F5A623;--gl:#FFD580;--gd:#B8711A;--dark:#090910;--d2:#111119;--d3:#1A1A26;--d4:#22222F;--d5:#2C2C3D;--txt:#E8E8F2;--muted:#7070A0;--faint:#35354A;--red:#C0392B;--green:#27AE60;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--dark);color:var(--txt);display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{flex-shrink:0;background:rgba(9,9,16,0.98);border-bottom:1px solid rgba(245,166,35,0.15);padding:0.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-size:1rem;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,var(--gold),var(--gl));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.conn-status{display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;color:var(--muted);}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--faint);}
+.conn-dot.on{background:var(--green);animation:blink 2s infinite;}
+.conn-dot.err{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* CHANNEL SETUP */
+.setup-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;gap:1.5rem;}
+.setup-icon{font-size:3.5rem;}
+.setup-title{font-size:1.2rem;font-weight:800;text-align:center;}
+.setup-sub{font-size:0.85rem;color:var(--muted);text-align:center;line-height:1.6;}
+.ch-input{width:100%;max-width:340px;background:var(--d3);border:2px solid rgba(245,166,35,0.3);border-radius:14px;color:var(--txt);font-size:1rem;padding:0.85rem 1.1rem;outline:none;text-align:center;letter-spacing:2px;font-weight:700;}
+.ch-input:focus{border-color:var(--gold);}
+.ch-input::placeholder{color:var(--faint);letter-spacing:0;font-weight:400;}
+.btn-connect{width:100%;max-width:340px;padding:0.9rem;border-radius:14px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--gd));color:#000;font-weight:900;font-size:1rem;letter-spacing:0.5px;}
+
+/* MAIN SCREEN */
+.main-screen{flex:1;display:none;flex-direction:column;overflow:hidden;}
+.main-screen.show{display:flex;}
+
+/* CHANNEL BAR */
+.ch-bar{flex-shrink:0;background:rgba(245,166,35,0.06);border-bottom:1px solid rgba(245,166,35,0.12);padding:0.5rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.ch-name{font-size:0.72rem;color:var(--muted);}
+.ch-name strong{color:var(--gold);}
+.ch-change{font-size:0.7rem;color:var(--faint);cursor:pointer;text-decoration:underline;}
+
+/* MIC AREA */
+.mic-area{flex-shrink:0;padding:1.25rem 1.25rem 0.75rem;display:flex;flex-direction:column;align-items:center;gap:1rem;}
+
+/* BIG MIC BUTTON */
+.mic-btn{width:110px;height:110px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--d4),var(--d5));display:flex;align-items:center;justify-content:center;font-size:2.8rem;transition:all .2s;box-shadow:0 6px 24px rgba(0,0,0,0.5);-webkit-user-select:none;user-select:none;}
+.mic-btn:active{transform:scale(0.94);}
+.mic-btn.on{background:linear-gradient(135deg,#922b21,#C0392B);animation:pulse 1.4s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(192,57,43,.7);}70%{box-shadow:0 0 0 22px rgba(192,57,43,0);}100%{box-shadow:0 0 0 0 rgba(192,57,43,0);}}
+.mic-state{font-size:0.88rem;font-weight:700;color:var(--muted);text-align:center;}
+.mic-state.active{color:#e74c3c;}
+
+/* LIVE TEXT AREA */
+.live-wrap{width:100%;padding:0 1.25rem;}
+.live-label{font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem;}
+.rec-dot{width:6px;height:6px;border-radius:50%;background:var(--red);display:none;}
+.rec-dot.on{display:inline-block;animation:blink 1s infinite;}
+.live-area{width:100%;background:var(--d3);border:1.5px solid var(--d5);border-radius:14px;color:var(--txt);font-size:0.95rem;line-height:1.65;padding:0.85rem 1rem;min-height:90px;max-height:140px;outline:none;resize:none;font-family:inherit;transition:border-color .2s;}
+.live-area:focus{border-color:rgba(245,166,35,0.4);}
+.live-area.listening{border-color:rgba(192,57,43,0.4);}
+.interim-txt{font-size:0.78rem;color:var(--faint);font-style:italic;margin-top:0.35rem;padding:0 0.25rem;min-height:1.2em;}
+
+/* SEND BUTTON */
+.send-area{padding:0.75rem 1.25rem;display:flex;gap:0.6rem;}
+.btn-send{flex:1;padding:1rem;border-radius:14px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--gd));color:#000;font-weight:900;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:opacity .2s;-webkit-user-select:none;}
+.btn-send:active{opacity:0.85;}
+.btn-send:disabled{opacity:.3;cursor:not-allowed;}
+.btn-clear{padding:1rem 1rem;border-radius:14px;border:1px solid var(--d5);background:var(--d3);color:var(--muted);font-size:0.9rem;cursor:pointer;-webkit-user-select:none;}
+.btn-clear:active{opacity:0.7;}
+
+/* SENT LIST */
+.sent-list{flex:1;overflow-y:auto;padding:0.5rem 1.25rem 1rem;}
+.sent-title{font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--faint);margin-bottom:0.75rem;padding-top:0.25rem;}
+.sent-item{background:var(--d2);border:1px solid var(--d4);border-radius:11px;padding:0.75rem 0.9rem;margin-bottom:0.5rem;animation:si .2s ease;}
+@keyframes si{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.sent-cat{font-size:0.58rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;padding:0.18rem 0.55rem;border-radius:6px;display:inline-block;margin-bottom:0.4rem;}
+.sent-txt{font-size:0.84rem;line-height:1.55;color:var(--txt);}
+.sent-time{font-size:0.65rem;color:var(--faint);margin-top:0.3rem;}
+.sent-status{font-size:0.65rem;margin-top:0.2rem;}
+.sent-status.ok{color:var(--green);}
+.sent-status.err{color:var(--red);}
+.empty-sent{text-align:center;padding:2rem 1rem;color:var(--faint);font-size:0.82rem;}
+
+/* CAT COLORS */
+.cc-mindset{background:rgba(155,89,182,.15);color:#c39bd3;}
+.cc-maqsad{background:rgba(245,166,35,.13);color:var(--gold);}
+.cc-intizom{background:rgba(39,174,96,.13);color:#58d68d;}
+.cc-xato{background:rgba(192,57,43,.13);color:#e59866;}
+.cc-dangasalik{background:rgba(231,76,60,.13);color:#f1948a;}
+.cc-odat{background:rgba(52,152,219,.13);color:#7fb3d3;}
+.cc-psixologiya{background:rgba(125,60,152,.13);color:#bb8fce;}
+.cc-boshqa{background:rgba(112,112,160,.12);color:var(--muted);}
+
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--d3);border:1px solid rgba(245,166,35,.35);border-radius:10px;padding:0.6rem 1.2rem;color:var(--txt);font-size:0.84rem;opacity:0;transition:all .28s;z-index:999;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--d5);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">🎙️ USTOZ iPad</div>
+  <div class="conn-status">
+    <div class="conn-dot" id="connDot"></div>
+    <span id="connTxt">Ulanmagan</span>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-icon">📡</div>
+  <div class="setup-title">Monoblock bilan ulaning</div>
+  <div class="setup-sub">
+    Kanal kodi — iPad va Monoblockning "ko'prigi".<br>
+    Har ikki qurilmada <strong style="color:var(--gold)">bir xil kod</strong> bo'lishi kerak.
+  </div>
+  <input class="ch-input" id="chInput" placeholder="Kanal kodini kiriting..." maxlength="30"
+    onkeydown="if(event.key==='Enter')connect()">
+  <div style="font-size:0.75rem;color:var(--faint);text-align:center;max-width:300px">
+    Misol: <span style="color:var(--gold)">sadikh2026</span><br>
+    Monoblockda ham xuddi shu kodni kiriting
+  </div>
+  <button class="btn-connect" onclick="connect()">Ulash →</button>
+</div>
+
+<!-- MAIN SCREEN -->
+<div class="main-screen" id="mainScreen">
+
+  <div class="ch-bar">
+    <div class="ch-name">📡 Kanal: <strong id="chDisplay"></strong></div>
+    <span class="ch-change" onclick="disconnect()">Kanal o'zgartirish</span>
+  </div>
+
+  <!-- MIC -->
+  <div class="mic-area">
+    <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎤</button>
+    <div class="mic-state" id="micState">Bosing va gapiring</div>
+  </div>
+
+  <!-- LIVE TEXT -->
+  <div class="live-wrap">
+    <div class="live-label">
+      <span class="rec-dot" id="recDot"></span>
+      <span>Gapirilgan matn (tahrir mumkin)</span>
+    </div>
+    <textarea class="live-area" id="liveArea"
+      placeholder="Mikrofon tugmasini bosib gapiring..."
+      oninput="updateSendBtn()"></textarea>
+    <div class="interim-txt" id="interimTxt"></div>
+  </div>
+
+  <!-- SEND -->
+  <div class="send-area">
+    <button class="btn-send" id="sendBtn" onclick="sendInside()" disabled>
+      📤 Monoblockga yuborish
+    </button>
+    <button class="btn-clear" onclick="clearLive()">🗑️</button>
+  </div>
+
+  <!-- SENT LIST -->
+  <div class="sent-list">
+    <div class="sent-title">Yuborilganlar (bu sessiya)</div>
+    <div id="sentItems">
+      <div class="empty-sent">Hali hech narsa yuborilmagan</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════ CATEGORIES ══════
+const CATS={
+  mindset:    {label:'🧠 Mindset',cc:'cc-mindset',kw:['mindset','fikr','aql','psixologiya','tafakkur','ishtiyoq','motivatsiya','qorquv','ishonch','ego','miya']},
+  maqsad:     {label:'🎯 Maqsad', cc:'cc-maqsad', kw:['maqsad','target','natija','reja','plan','orzu','vision','strategiya','muddat','deadline']},
+  intizom:    {label:'⚔️ Intizom',cc:'cc-intizom',kw:['intizom','disiplin','tartib','qoida','muntazam','har kuni','doimiy','izchil','jadval','majburiyat']},
+  xato:       {label:'🔴 Xato',   cc:'cc-xato',   kw:['xato','yanglish','notogri','fail','saboq','organ','tajriba','muammo','tahlil']},
+  dangasalik: {label:'🔥 Prokr.', cc:'cc-dangasalik',kw:['dangasa','prokrastinatsiya','kechiktir','ertaga','keyin','bahona']},
+  odat:       {label:'🔄 Odat',   cc:'cc-odat',   kw:['odat','habit','kunlik','ertalab','kechqurun','uyqu','sport','kitob','oqush','mashq']},
+  psixologiya:{label:'🧬 Psix.',  cc:'cc-psixologiya',kw:['stress','bosim','asab','anxiety','ruh','energiya','charchagan','dam']},
+  boshqa:     {label:'💡 Boshqa', cc:'cc-boshqa', kw:[]}
+};
+function detectCat(txt){
+  const t=txt.toLowerCase();let best='boshqa',sc=0;
+  for(const[k,c]of Object.entries(CATS)){if(k==='boshqa')continue;const s=c.kw.filter(w=>t.includes(w)).length;if(s>sc){sc=s;best=k;}}
+  return best;
+}
+function cleanText(raw){
+  return raw.split(/\s+/).filter(w=>{if(!w)return false;const letters=w.replace(/[\d\s\-\+\.,:;]/g,'');return letters.length>0;}).join(' ').trim();
+}
+
+// ══════ CHANNEL ══════
+let channel='';
+const NTFY='https://ntfy.sh/';
+
+function connect(){
+  const val=document.getElementById('chInput').value.trim().replace(/\s+/g,'-').toLowerCase();
+  if(!val||val.length<3){toast('Kamida 3 ta belgi');return;}
+  channel='intizom-'+val;
+  localStorage.setItem('ustoz_ipad_ch',channel);
+  showMain();
+}
+function disconnect(){
+  channel='';
+  localStorage.removeItem('ustoz_ipad_ch');
+  document.getElementById('mainScreen').classList.remove('show');
+  document.getElementById('setupScreen').style.display='flex';
+  setConn(false);
+  stopMic();
+}
+function showMain(){
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('mainScreen').classList.add('show');
+  document.getElementById('chDisplay').textContent=channel.replace('intizom-','');
+  setConn(true);
+}
+function setConn(on){
+  const dot=document.getElementById('connDot');
+  const txt=document.getElementById('connTxt');
+  dot.className='conn-dot'+(on?' on':' err');
+  txt.textContent=on?'Tayyor':'Ulanmagan';
+}
+
+// ══════ SPEECH ══════
+let recog=null,listening=false;
+
+function initSpeech(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Safari da ishlaydi — Chrome emas');return false;}
+  recog=new SR();recog.continuous=true;recog.interimResults=true;recog.maxAlternatives=1;
+  recog.lang='uz-UZ';
+  recog.onresult=(e)=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const res=e.results[i];const conf=res[0].confidence;const raw=res[0].transcript;
+      if(res.isFinal){
+        if(conf>0&&conf<0.38)continue;
+        const cleaned=cleanText(raw);if(!cleaned||cleaned.length<2)continue;
+        const area=document.getElementById('liveArea');
+        area.value=(area.value+(area.value?' ':'')+cleaned).trim();
+        updateSendBtn();
+      } else {
+        const c=cleanText(raw);if(c)interim=c;
+      }
+    }
+    document.getElementById('interimTxt').textContent=interim?'...'+interim:'';
+  };
+  recog.onerror=(e)=>{if(e.error==='no-speech'||e.error==='aborted')return;toast('Xato: '+e.error);stopMic();};
+  recog.onend=()=>{if(listening){try{recog.start();}catch(ex){}}};
+  return true;
+}
+
+function toggleMic(){if(!recog&&!initSpeech())return;if(listening)stopMic();else startMic();}
+function startMic(){
+  listening=true;try{recog.start();}catch(e){}
+  document.getElementById('micBtn').classList.add('on');document.getElementById('micBtn').textContent='⏹';
+  document.getElementById('micState').textContent='Tinglayapman...';document.getElementById('micState').classList.add('active');
+  document.getElementById('recDot').classList.add('on');document.getElementById('liveArea').classList.add('listening');
+}
+function stopMic(){
+  listening=false;try{recog&&recog.stop();}catch(e){}
+  document.getElementById('micBtn').classList.remove('on');document.getElementById('micBtn').textContent='🎤';
+  document.getElementById('micState').textContent='Bosing va gapiring';document.getElementById('micState').classList.remove('active');
+  document.getElementById('recDot').classList.remove('on');document.getElementById('liveArea').classList.remove('listening');
+  document.getElementById('interimTxt').textContent='';
+}
+
+// ══════ SEND ══════
+let sentCount=0;
+
+async function sendInside(){
+  const area=document.getElementById('liveArea');
+  const txt=area.value.trim();
+  if(!txt||txt.length<3){toast('Matn bo\'sh');return;}
+  const cat=detectCat(txt);
+  const payload={txt,cat,time:new Date().toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'}),id:Date.now()};
+
+  // Add to sent list (pending)
+  const itemId='s'+payload.id;
+  addSentItem(itemId,payload,'yuborilmoqda...');
+
+  // Clear input
+  area.value='';updateSendBtn();
+
+  // Send to ntfy.sh
+  try{
+    const resp=await fetch(NTFY+channel,{
+      method:'POST',
+      body:JSON.stringify(payload),
+      headers:{'Content-Type':'application/json','X-Title':'Inside: '+CATS[cat].label,'X-Tags':'white_check_mark'}
+    });
+    if(resp.ok){
+      updateSentStatus(itemId,'✅ Monoblock da qabul qilindi','ok');
+      toast('✅ Yuborildi!');
+      setConn(true);
+    } else {
+      updateSentStatus(itemId,'⚠️ Yuborishda xato ('+resp.status+')','err');
+      toast('Xato: '+resp.status);
+    }
+  } catch(err){
+    updateSentStatus(itemId,'❌ Internet yo\'q yoki xato','err');
+    toast('Internet ulanishini tekshiring');
+    setConn(false);
+  }
+}
+
+function addSentItem(id,ins,statusTxt){
+  const el=document.getElementById('sentItems');
+  if(el.querySelector('.empty-sent'))el.innerHTML='';
+  const cat=CATS[ins.cat];
+  const d=document.createElement('div');
+  d.className='sent-item';d.id=id;
+  d.innerHTML='<div class="sent-cat '+cat.cc+'">'+cat.label+'</div><div class="sent-txt">'+esc(ins.txt)+'</div><div class="sent-time">'+ins.time+'</div><div class="sent-status" id="st'+id+'">⏳ '+statusTxt+'</div>';
+  el.insertBefore(d,el.firstChild);
+}
+function updateSentStatus(id,msg,cls){
+  const el=document.getElementById('st'+id);
+  if(el){el.textContent=msg;el.className='sent-status '+cls;}
+}
+
+function clearLive(){document.getElementById('liveArea').value='';document.getElementById('interimTxt').textContent='';updateSendBtn();}
+function updateSendBtn(){document.getElementById('sendBtn').disabled=document.getElementById('liveArea').value.trim().length<3;}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let _tt;
+function toast(msg,dur=2200){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),dur);}
+
+// ══════ INIT ══════
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved=localStorage.getItem('ustoz_ipad_ch');
+  if(saved){channel=saved;document.getElementById('chInput').value=saved.replace('intizom-','');showMain();}
+  updateSendBtn();
+});
+</script>
+</body>
+</html>
